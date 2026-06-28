@@ -39,6 +39,17 @@ function parseBuffer(buf: string): { summary: string; full: string; phase: Phase
   }
 }
 
+// Render **bold** and *italic* markdown inline without a library dependency
+function md(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4)
+      return <strong key={i} className="font-semibold text-stone-800">{part.slice(2, -2)}</strong>
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>
+    return part
+  })
+}
+
 function StreamCursor() {
   return (
     <span className="inline-block w-0.5 h-[1em] bg-stone-400 ml-0.5 animate-pulse align-text-bottom" />
@@ -123,10 +134,7 @@ export function ExpositionDrawer({
 
   return (
     <Sheet open={keyword !== null} onOpenChange={(open) => { if (!open) onClose() }}>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col overflow-y-auto sm:max-w-lg"
-      >
+      <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-lg">
         {keyword && (
           <>
             <SheetHeader className="border-b border-stone-100 pb-4">
@@ -146,7 +154,6 @@ export function ExpositionDrawer({
                 </p>
               )}
 
-              {/* Waiting for first text */}
               {isStreaming && phase === "pre" && !streamError && (
                 <div className="flex gap-1.5 py-6 justify-center">
                   <span className="h-2 w-2 animate-bounce rounded-full bg-stone-300 [animation-delay:-0.3s]" />
@@ -155,27 +162,24 @@ export function ExpositionDrawer({
                 </div>
               )}
 
-              {/* Summary */}
               {summary && (
                 <p className="text-base leading-relaxed text-stone-700">
-                  {summary}
+                  {md(summary)}
                   {isStreaming && phase === "summary" && <StreamCursor />}
                 </p>
               )}
 
-              {/* Read more toggle — appears once full section starts streaming */}
               {phase === "full" && !showFull && (
                 <Button variant="outline" size="sm" onClick={() => setShowFull(true)}>
                   Read more
                 </Button>
               )}
 
-              {/* Full exposition */}
               {showFull && (
-                <div className="space-y-3 text-sm leading-relaxed text-stone-700">
+                <div className="space-y-3 text-sm leading-relaxed text-stone-600">
                   {fullParas.map((para, i) => (
                     <p key={i}>
-                      {para}
+                      {md(para)}
                       {isStreaming && i === fullParas.length - 1 && <StreamCursor />}
                     </p>
                   ))}

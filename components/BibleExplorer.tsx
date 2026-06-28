@@ -18,6 +18,7 @@ export function BibleExplorer() {
     setIsLoading(true)
     setError(undefined)
     setSelectedKeyword(null)
+    setResult(null)
 
     try {
       const res = await fetch("/api/passage", {
@@ -63,6 +64,18 @@ export function BibleExplorer() {
           isLoading={isLoading}
           error={error}
         />
+
+        {isLoading && (
+          <div className="w-full max-w-2xl animate-pulse space-y-3">
+            <div className="h-5 w-24 rounded bg-stone-200" />
+            <div className="h-3 w-52 rounded bg-stone-100" />
+            <div className="mt-4 space-y-2">
+              <div className="h-5 w-full rounded bg-stone-200" />
+              <div className="h-5 w-11/12 rounded bg-stone-200" />
+              <div className="h-5 w-4/6 rounded bg-stone-100" />
+            </div>
+          </div>
+        )}
 
         {result && (
           <PassageDisplay
