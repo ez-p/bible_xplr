@@ -28,6 +28,7 @@ export function PassageInput({ value, onChange, onSubmit, isLoading, error }: Pa
           onChange={(e) => onChange(e.target.value)}
           placeholder="John 3:16 or Romans 8:28-39"
           disabled={isLoading}
+          autoComplete="off"
           suppressHydrationWarning
           className="flex-1 h-11 px-4 rounded-lg border border-stone-300 bg-white text-stone-900 text-base placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50 transition-shadow"
         />
