@@ -16,6 +16,8 @@ interface ExpositionDrawerProps {
   passageText: string
   reference: string
   onClose: () => void
+  onReadMore: (keyword: Keyword) => void
+  onExpositionUpdate: (text: string) => void
 }
 
 type Phase = "pre" | "summary" | "full"
@@ -61,26 +63,37 @@ export function ExpositionDrawer({
   passageText,
   reference,
   onClose,
+  onReadMore,
+  onExpositionUpdate,
 }: ExpositionDrawerProps) {
   const [summary, setSummary] = useState("")
   const [fullExposition, setFullExposition] = useState("")
   const [phase, setPhase] = useState<Phase>("pre")
-  const [showFull, setShowFull] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
+  // True while the stream is "handed off" to the main window via Read more.
+  // Prevents the cleanup function from aborting the still-running fetch.
+  const readMoreModeRef = useRef(false)
+  // Always holds the latest onExpositionUpdate so the async IIFE never goes stale.
+  const onExpositionUpdateRef = useRef(onExpositionUpdate)
+  onExpositionUpdateRef.current = onExpositionUpdate
 
   useEffect(() => {
-    if (!keyword) return
+    // A new real keyword: abort any lingering read-more stream and start fresh.
+    if (keyword) {
+      abortRef.current?.abort()
+      readMoreModeRef.current = false
+    } else {
+      return
+    }
 
-    abortRef.current?.abort()
     const controller = new AbortController()
     abortRef.current = controller
 
     setSummary("")
     setFullExposition("")
     setPhase("pre")
-    setShowFull(false)
     setIsStreaming(true)
     setStreamError(null)
 
@@ -117,6 +130,9 @@ export function ExpositionDrawer({
           setSummary(parsed.summary)
           setFullExposition(parsed.full)
           setPhase(parsed.phase)
+          if (readMoreModeRef.current && parsed.full) {
+            onExpositionUpdateRef.current(parsed.full)
+          }
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -127,10 +143,11 @@ export function ExpositionDrawer({
       }
     })()
 
-    return () => controller.abort()
+    return () => {
+      // Only abort if the stream wasn't handed off to the main window.
+      if (!readMoreModeRef.current) controller.abort()
+    }
   }, [keyword, passageText, reference])
-
-  const fullParas = fullExposition.split("\n\n").filter(Boolean)
 
   return (
     <Sheet open={keyword !== null} onOpenChange={(open) => { if (!open) onClose() }}>
@@ -169,21 +186,18 @@ export function ExpositionDrawer({
                 </p>
               )}
 
-              {phase === "full" && !showFull && (
-                <Button variant="outline" size="sm" onClick={() => setShowFull(true)}>
+              {phase === "full" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    readMoreModeRef.current = true
+                    onReadMore(keyword)
+                    onClose()
+                  }}
+                >
                   Read more
                 </Button>
-              )}
-
-              {showFull && (
-                <div className="space-y-3 text-sm leading-relaxed text-stone-600">
-                  {fullParas.map((para, i) => (
-                    <p key={i}>
-                      {md(para)}
-                      {isStreaming && i === fullParas.length - 1 && <StreamCursor />}
-                    </p>
-                  ))}
-                </div>
               )}
             </div>
           </>

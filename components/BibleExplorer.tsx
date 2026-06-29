@@ -6,12 +6,23 @@ import { PassageDisplay } from "@/components/PassageDisplay"
 import { ExpositionDrawer } from "@/components/ExpositionDrawer"
 import type { Keyword, PassageResult } from "@/lib/types"
 
+function md(text: string): React.ReactNode[] {
+  return text.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g).map((part, i) => {
+    if (part.startsWith("**") && part.endsWith("**") && part.length > 4)
+      return <strong key={i} className="font-semibold text-stone-800">{part.slice(2, -2)}</strong>
+    if (part.startsWith("*") && part.endsWith("*") && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>
+    return part
+  })
+}
+
 export function BibleExplorer() {
   const [reference, setReference] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | undefined>()
   const [result, setResult] = useState<PassageResult | null>(null)
   const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null)
+  const [expositionPanel, setExpositionPanel] = useState<{ keyword: Keyword; text: string } | null>(null)
 
   async function handleSubmit() {
     if (!reference.trim()) return
@@ -19,6 +30,7 @@ export function BibleExplorer() {
     setError(undefined)
     setSelectedKeyword(null)
     setResult(null)
+    setExpositionPanel(null)
 
     try {
       const res = await fetch("/api/passage", {
@@ -40,9 +52,15 @@ export function BibleExplorer() {
   }
 
   function handleKeywordClick(kw: Keyword) {
-    // Spread to create a new object reference each time so the drawer's
-    // useEffect re-triggers even if the same keyword is clicked twice.
     setSelectedKeyword({ ...kw })
+  }
+
+  function handleReadMore(kw: Keyword) {
+    setExpositionPanel({ keyword: kw, text: "" })
+  }
+
+  function handleExpositionUpdate(text: string) {
+    setExpositionPanel(prev => prev ? { ...prev, text } : null)
   }
 
   return (
@@ -86,6 +104,24 @@ export function BibleExplorer() {
             notice={result.notice}
           />
         )}
+
+        {expositionPanel && (
+          <div className="w-full max-w-2xl border-t border-stone-200 pt-6 space-y-4">
+            <div>
+              <h3 className="text-base font-semibold text-stone-700">
+                {expositionPanel.keyword.word}
+              </h3>
+              <p className="text-xs text-stone-400 mt-0.5">
+                {expositionPanel.keyword.theme} &middot; {expositionPanel.keyword.originalLanguage}
+              </p>
+            </div>
+            <div className="space-y-3 text-sm leading-relaxed text-stone-600">
+              {expositionPanel.text.split("\n\n").filter(Boolean).map((para, i) => (
+                <p key={i}>{md(para)}</p>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {result && (
@@ -94,6 +130,8 @@ export function BibleExplorer() {
           passageText={result.passageText}
           reference={result.reference}
           onClose={() => setSelectedKeyword(null)}
+          onReadMore={handleReadMore}
+          onExpositionUpdate={handleExpositionUpdate}
         />
       )}
     </>
