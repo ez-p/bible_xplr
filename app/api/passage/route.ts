@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
 import type { Keyword } from '@/lib/types'
 import { injectKeywordHighlights } from '@/lib/highlight'
+import { passageLimit } from '@/lib/ratelimit'
 
 const ESV_BASE = 'https://api.esv.org/v3/passage'
 const anthropic = new Anthropic()
@@ -55,6 +56,15 @@ Rules:
 }
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'anonymous'
+  const { success } = await passageLimit.limit(ip)
+  if (!success) {
+    return Response.json(
+      { error: 'Too many requests — please wait a moment before trying again.' },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json().catch(() => ({}))
   const reference: string = body?.reference?.trim() ?? ''
 

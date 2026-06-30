@@ -72,3 +72,5 @@ ANTHROPIC_API_KEY=    # Anthropic API key
 ```
 
 Both are server-side only — `.env.local`, never committed (`.gitignore` already excludes `.env*`).
+
+Rate limiting uses an in-memory sliding window (`lib/ratelimit.ts`) — no external dependency required. Limits: 10 passage lookups / IP / minute; 20 exposition streams / IP / minute. To upgrade to a persistent limiter for high-traffic deployments, replace `lib/ratelimit.ts` with an Upstash Redis implementation keeping the same `{ limit(ip) }` interface.

@@ -1,9 +1,19 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { expositionLimit } from '@/lib/ratelimit'
 
 const anthropic = new Anthropic()
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? 'anonymous'
+  const { success } = await expositionLimit.limit(ip)
+  if (!success) {
+    return Response.json(
+      { error: 'Too many requests — please wait a moment before trying again.' },
+      { status: 429 }
+    )
+  }
+
   const body = await request.json().catch(() => ({}))
   const { keyword, theme, originalLanguage, passageText, reference } = body
 
