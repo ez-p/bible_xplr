@@ -21,6 +21,16 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
+  if (
+    typeof keyword !== 'string' || keyword.length > 100 ||
+    typeof reference !== 'string' || reference.length > 100 ||
+    typeof passageText !== 'string' || passageText.length > 10_000 ||
+    typeof theme !== 'string' || theme.length > 100 ||
+    !['Greek', 'Hebrew'].includes(originalLanguage)
+  ) {
+    return Response.json({ error: 'Invalid request' }, { status: 400 })
+  }
+
   const encoder = new TextEncoder()
 
   const stream = new ReadableStream({
