@@ -71,7 +71,7 @@ export function BibleExplorer() {
             Bible Explorer
           </h1>
           <p className="mt-2 text-stone-500">
-            Enter a passage reference to explore its original language depth
+            Enter a passage reference to expound its meaning through the original Greek and Hebrew
           </p>
         </div>
 
