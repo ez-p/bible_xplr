@@ -7,11 +7,12 @@ interface PassageInputProps {
   value: string
   onChange: (value: string) => void
   onSubmit: () => void
+  onHelp: () => void
   isLoading: boolean
   error?: string
 }
 
-export function PassageInput({ value, onChange, onSubmit, isLoading, error }: PassageInputProps) {
+export function PassageInput({ value, onChange, onSubmit, onHelp, isLoading, error }: PassageInputProps) {
   return (
     <form
       onSubmit={(e) => {
@@ -38,6 +39,15 @@ export function PassageInput({ value, onChange, onSubmit, isLoading, error }: Pa
         </Button>
       </div>
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      <div className="mt-3 flex justify-center">
+        <button
+          type="button"
+          onClick={onHelp}
+          className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
+        >
+          How does this work?
+        </button>
+      </div>
     </form>
   )
 }

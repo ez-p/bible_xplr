@@ -14,7 +14,7 @@ const lora = Lora({
 })
 
 export const metadata: Metadata = {
-  title: "Bible Explorer",
+  title: "Bible Exegesis Explorer",
   description: "Explore Bible passages with original language word studies",
 }
 

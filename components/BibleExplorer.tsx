@@ -4,6 +4,7 @@ import { useState } from "react"
 import { PassageInput } from "@/components/PassageInput"
 import { PassageDisplay } from "@/components/PassageDisplay"
 import { ExpositionDrawer } from "@/components/ExpositionDrawer"
+import { HelpDialog } from "@/components/HelpDialog"
 import type { Keyword, PassageResult } from "@/lib/types"
 
 function md(text: string): React.ReactNode[] {
@@ -23,6 +24,7 @@ export function BibleExplorer() {
   const [result, setResult] = useState<PassageResult | null>(null)
   const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null)
   const [expositionPanel, setExpositionPanel] = useState<{ keyword: Keyword; text: string } | null>(null)
+  const [showHelp, setShowHelp] = useState(false)
 
   async function handleSubmit() {
     if (!reference.trim()) return
@@ -68,7 +70,7 @@ export function BibleExplorer() {
       <div className="flex flex-col items-center gap-8 py-16 px-4 w-full max-w-3xl mx-auto">
         <div className="text-center">
           <h1 className="text-3xl font-semibold text-stone-800 tracking-tight">
-            Bible Explorer
+            Bible Exegesis Explorer
           </h1>
           <p className="mt-2 text-stone-500">
             Enter a passage reference to expound its meaning through the original Greek and Hebrew
@@ -79,6 +81,7 @@ export function BibleExplorer() {
           value={reference}
           onChange={setReference}
           onSubmit={handleSubmit}
+          onHelp={() => setShowHelp(true)}
           isLoading={isLoading}
           error={error}
         />
@@ -134,6 +137,8 @@ export function BibleExplorer() {
           onExpositionUpdate={handleExpositionUpdate}
         />
       )}
+
+      <HelpDialog open={showHelp} onClose={() => setShowHelp(false)} />
     </>
   )
 }
