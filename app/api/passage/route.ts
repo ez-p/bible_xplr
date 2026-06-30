@@ -14,7 +14,7 @@ async function detectKeywords(passageText: string, reference: string): Promise<K
     messages: [
       {
         role: 'user',
-        content: `Identify 3–8 major theological theme keywords in this Bible passage. Choose words central to meaning, doctrine, or interpretive significance — not generic words.
+        content: `Identify 3–16 major theological theme keywords in this Bible passage. Choose words central to meaning, doctrine, or interpretive significance — not generic words.
 
 Passage (${reference}):
 "${passageText}"
@@ -28,6 +28,7 @@ Return ONLY a valid JSON object:
 
 Rules:
 - "word" must appear verbatim in the passage text above (exact spelling, may be a short phrase)
+- Each "word" must be unique — do not repeat the same word or phrase more than once
 - "originalLanguage": "Greek" for New Testament; "Hebrew" for Old Testament (Genesis–Malachi)
 - "theme": short label, 2–4 words`,
       },
@@ -40,7 +41,14 @@ Rules:
 
   try {
     const data = JSON.parse(match[0])
-    return Array.isArray(data.keywords) ? (data.keywords as Keyword[]) : []
+    if (!Array.isArray(data.keywords)) return []
+    const seen = new Set<string>()
+    return (data.keywords as Keyword[]).filter(kw => {
+      const key = kw.word.toLowerCase()
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
   } catch {
     return []
   }

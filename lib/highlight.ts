@@ -12,8 +12,11 @@ export function injectKeywordHighlights(html: string, keywords: Keyword[]): stri
     // Skip HTML tags; replace keyword occurrences in text content only
     const pattern = new RegExp(`(<[^>]*>)|${boundary}(${escaped})${boundary}`, 'gi')
     const theme = kw.theme.replace(/"/g, '&quot;')
+    let highlighted = false
     result = result.replace(pattern, (_match, tag, word) => {
       if (tag) return tag
+      if (highlighted) return word
+      highlighted = true
       return `<span class="keyword-highlight" data-keyword="${kw.word}" data-theme="${theme}" data-lang="${kw.originalLanguage}">${word}</span>`
     })
   }
