@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server'
 import Anthropic from '@anthropic-ai/sdk'
+import sanitizeHtml from 'sanitize-html'
 import type { Keyword } from '@/lib/types'
 import { injectKeywordHighlights } from '@/lib/highlight'
 import { passageLimit } from '@/lib/ratelimit'
@@ -105,7 +106,26 @@ export async function POST(request: NextRequest) {
 
   const passageText = (textData.passages[0] as string).trim()
   const canonical = textData.canonical as string
-  const rawHtml = (htmlData.passages?.[0] as string) ?? passageText
+
+  // Sanitize ESV HTML to an explicit allowlist before keyword injection.
+  // Strips any unexpected tags or attributes that could cause XSS if the
+  // upstream ESV API response were ever tampered with or malformed.
+  const rawHtml = sanitizeHtml(
+    (htmlData.passages?.[0] as string) ?? passageText,
+    {
+      allowedTags: ['p', 'h3', 'h4', 'span', 'b', 'i', 'sup', 'br', 'blockquote', 'div'],
+      allowedAttributes: {
+        // ESV uses class on span for verse-num, chapter-num, woc
+        span: ['class'],
+        // Allow class on all block elements for ESV structural styling
+        p: ['class'],
+        h3: ['class'],
+        h4: ['class'],
+        div: ['class'],
+        blockquote: ['class'],
+      },
+    }
+  )
 
   // Keyword detection — if Claude fails, return passage without highlights
   let keywords: Keyword[] = []
