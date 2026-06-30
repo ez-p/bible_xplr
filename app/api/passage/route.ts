@@ -14,7 +14,7 @@ async function detectKeywords(passageText: string, reference: string): Promise<K
     messages: [
       {
         role: 'user',
-        content: `Identify 3–16 major theological theme keywords in this Bible passage. Choose words central to meaning, doctrine, or interpretive significance — not generic words.
+        content: `Identify all major theological theme keywords in this Bible passage. Choose words central to meaning, doctrine, or interpretive significance — not generic words.
 
 Passage (${reference}):
 "${passageText}"
