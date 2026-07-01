@@ -45,7 +45,7 @@ function parseBuffer(buf: string): { summary: string; full: string; phase: Phase
 function md(text: string): React.ReactNode[] {
   return text.split(/(\*\*[^*\n]+\*\*|\*[^*\n]+\*)/g).map((part, i) => {
     if (part.startsWith("**") && part.endsWith("**") && part.length > 4)
-      return <strong key={i} className="font-semibold text-stone-800">{part.slice(2, -2)}</strong>
+      return <strong key={i} className="font-semibold text-heading">{part.slice(2, -2)}</strong>
     if (part.startsWith("*") && part.endsWith("*") && part.length > 2)
       return <em key={i}>{part.slice(1, -1)}</em>
     return part
@@ -54,7 +54,7 @@ function md(text: string): React.ReactNode[] {
 
 function StreamCursor() {
   return (
-    <span className="inline-block w-0.5 h-[1em] bg-stone-400 ml-0.5 animate-pulse align-text-bottom" />
+    <span className="inline-block w-0.5 h-[1em] bg-muted-foreground ml-0.5 animate-pulse align-text-bottom" />
   )
 }
 
@@ -154,8 +154,8 @@ export function ExpositionDrawer({
       <SheetContent side="right" className="flex w-full flex-col overflow-y-auto sm:max-w-lg">
         {keyword && (
           <>
-            <SheetHeader className="border-b border-stone-100 pb-4">
-              <SheetTitle className="text-xl font-semibold text-stone-800">
+            <SheetHeader className="border-b border-border pb-4">
+              <SheetTitle className="text-xl font-semibold text-heading">
                 {keyword.word}
               </SheetTitle>
               <div className="flex flex-wrap items-center gap-2 mt-1">
@@ -166,21 +166,21 @@ export function ExpositionDrawer({
 
             <div className="flex-1 space-y-4 p-4">
               {streamError && (
-                <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+                <p className="rounded border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                   {streamError}
                 </p>
               )}
 
               {isStreaming && phase === "pre" && !streamError && (
                 <div className="flex gap-1.5 py-6 justify-center">
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-stone-300 [animation-delay:-0.3s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-stone-300 [animation-delay:-0.15s]" />
-                  <span className="h-2 w-2 animate-bounce rounded-full bg-stone-300" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gold-muted [animation-delay:-0.3s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gold-muted [animation-delay:-0.15s]" />
+                  <span className="h-2 w-2 animate-bounce rounded-full bg-gold-muted" />
                 </div>
               )}
 
               {summary && (
-                <p className="text-base leading-relaxed text-stone-700">
+                <p className="text-base leading-relaxed text-foreground">
                   {md(summary)}
                   {isStreaming && phase === "summary" && <StreamCursor />}
                 </p>

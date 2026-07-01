@@ -27,19 +27,19 @@ export function PassageDisplay({
 
   return (
     <div className="w-full max-w-2xl">
-      <h2 className="text-xl font-semibold text-stone-600 mb-4">{reference}</h2>
+      <h2 className="text-xl font-semibold text-heading mb-4">{reference}</h2>
       {notice && (
-        <p className="mb-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded px-3 py-2">
+        <p className="mb-3 text-sm text-olive bg-gold/10 border border-gold/30 rounded px-3 py-2">
           {notice}
         </p>
       )}
       {keywords.length > 0 && (
-        <p className="mb-4 text-xs text-stone-400 font-sans">
+        <p className="mb-4 text-xs text-muted-foreground font-sans">
           Click a highlighted word to explore its original language meaning
         </p>
       )}
       <div
-        className="esv-passage font-serif text-lg leading-relaxed text-stone-800"
+        className="esv-passage font-serif text-lg leading-relaxed text-foreground bg-white rounded-lg shadow-sm p-6 border border-border"
         dangerouslySetInnerHTML={{ __html: passageHtml }}
         onClick={handleClick}
       />

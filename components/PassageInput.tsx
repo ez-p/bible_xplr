@@ -31,19 +31,19 @@ export function PassageInput({ value, onChange, onSubmit, onHelp, isLoading, err
           disabled={isLoading}
           autoComplete="off"
           suppressHydrationWarning
-          className="flex-1 h-11 px-4 rounded-lg border border-stone-300 bg-white text-stone-900 text-base placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50 transition-shadow"
+          className="flex-1 h-11 px-4 rounded-lg border border-input bg-white text-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 transition-shadow"
         />
         <Button type="submit" disabled={isLoading || !value.trim()} className="gap-2">
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           {isLoading ? "Exploring…" : "Explore"}
         </Button>
       </div>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       <div className="mt-3 flex justify-center">
         <button
           type="button"
           onClick={onHelp}
-          className="text-sm text-amber-500 hover:text-amber-600 transition-colors"
+          className="text-sm text-gold hover:text-olive transition-colors"
         >
           How does this work?
         </button>

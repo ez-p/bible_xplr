@@ -7,6 +7,13 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-heading: var(--text-heading-brand);
+  --color-footer: var(--text-footer-brand);
+  --color-gold: var(--gold);
+  --color-gold-muted: var(--gold-muted);
+  --color-olive: var(--olive);
+  --color-parchment: var(--parchment-light);
+  --color-parchment-card: var(--card-bg-brand);
   --font-sans: var(--font-geist-sans);
   --font-serif: var(--font-lora);
   --font-mono: var(--font-geist-mono);
@@ -50,24 +57,38 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* Reverent Classic — brand tokens (design-tokens/tokens.css) */
+  --parchment-start: #f6eed7;
+  --parchment-mid: #efe5c9;
+  --parchment-end: #e9ddbe;
+  --text-primary-brand: #2c2a20;
+  --text-heading-brand: #1c2b49;
+  --text-muted-brand: #5c5843;
+  --text-footer-brand: #8a856d;
+  --olive: #4d5330;
+  --parchment-light: #f4ecd6;
+  --gold: #bd9a5f;
+  --gold-muted: #c9b47e;
+  --card-bg-brand: #faf4e2;
+
+  --background: var(--parchment-mid);
+  --foreground: var(--text-primary-brand);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: var(--text-primary-brand);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: var(--text-primary-brand);
+  --primary: var(--olive);
+  --primary-foreground: var(--parchment-light);
+  --secondary: #f0e4c8;
+  --secondary-foreground: var(--olive);
+  --muted: var(--card-bg-brand);
+  --muted-foreground: var(--text-muted-brand);
+  --accent: var(--parchment-light);
+  --accent-foreground: var(--olive);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: rgba(28, 43, 73, 0.18);
+  --input: rgba(28, 43, 73, 0.25);
+  --ring: var(--gold);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -130,20 +151,31 @@
   }
 }
 
+/* Page background gradient (Reverent Classic) */
+.app-bg {
+  background: radial-gradient(
+    120% 90% at 50% 0%,
+    var(--parchment-start) 0%,
+    var(--parchment-mid) 60%,
+    var(--parchment-end) 100%
+  );
+}
+
 /* ESV passage HTML styling */
 .esv-passage p {
   @apply mb-4;
 }
 .esv-passage h3 {
-  @apply text-sm font-semibold text-stone-500 uppercase tracking-wide mt-6 mb-2 font-sans;
+  @apply text-sm font-semibold text-muted-foreground uppercase tracking-wide mt-6 mb-2 font-sans;
 }
 .esv-passage .verse-num {
-  @apply text-xs font-bold text-stone-400 align-super mr-0.5 not-italic font-sans;
+  @apply text-xs font-bold text-muted-foreground align-super mr-0.5 not-italic font-sans;
 }
 .esv-passage .chapter-num {
-  @apply text-5xl font-bold text-stone-700 float-left mr-2 mt-1 leading-none font-sans;
+  @apply text-5xl font-bold text-heading float-left mr-2 mt-1 leading-none font-sans;
 }
 .esv-passage .woc {
+  /* Words of Christ — traditional red-letter convention, not a brand color */
   @apply text-red-700;
 }
 .esv-passage blockquote {
@@ -155,13 +187,13 @@
 
 /* Keyword highlight spans injected server-side */
 .keyword-highlight {
-  background-color: rgb(251 191 36 / 0.25);
-  border-bottom: 2px solid rgb(245 158 11);
+  background-color: rgb(189 154 95 / 0.25);
+  border-bottom: 2px solid rgb(189 154 95);
   border-radius: 2px;
   padding: 0 1px;
   cursor: pointer;
   transition: background-color 0.15s;
 }
 .keyword-highlight:hover {
-  background-color: rgb(251 191 36 / 0.5);
+  background-color: rgb(189 154 95 / 0.45);
 }
