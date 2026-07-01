@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       { headers: { Authorization: auth } }
     ),
     fetch(
-      `${ESV_BASE}/html/?q=${q}&include-headings=true&include-footnotes=false&include-verse-numbers=true&include-short-copyright=false&include-passage-references=false&include-css-link=false`,
+      `${ESV_BASE}/html/?q=${q}&include-headings=false&include-footnotes=false&include-verse-numbers=true&include-short-copyright=false&include-passage-references=false&include-css-link=false`,
       { headers: { Authorization: auth } }
     ),
   ])

@@ -53,7 +53,7 @@ Two endpoints, called in parallel from `/api/passage`:
 | Endpoint | Use | Key params |
 |---|---|---|
 | `/v3/passage/text/` | Claude input | `include-verse-numbers=false`, `include-headings=false`, `include-footnotes=false` |
-| `/v3/passage/html/` | User display | `include-headings=true`, `include-verse-numbers=true`, `include-footnotes=false`, `include-css-link=false` |
+| `/v3/passage/html/` | User display | `include-headings=false`, `include-verse-numbers=true`, `include-footnotes=false`, `include-css-link=false` |
 
 Pass the user's input URL-encoded directly as the `q` parameter — do not build a custom reference parser. Let the ESV API reject invalid references and surface that error to the user.
 
