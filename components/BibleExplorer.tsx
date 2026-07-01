@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { PassageInput } from "@/components/PassageInput"
 import { PassageDisplay } from "@/components/PassageDisplay"
 import { ExpositionDrawer } from "@/components/ExpositionDrawer"
@@ -69,9 +70,18 @@ export function BibleExplorer() {
     <>
       <div className="flex flex-col items-center gap-8 py-16 px-4 w-full max-w-3xl mx-auto">
         <div className="text-center">
-          <h1 className="text-3xl font-semibold text-stone-800 tracking-tight">
-            Bible Exegesis Explorer
-          </h1>
+          <div className="flex items-center justify-center gap-3">
+            <Image
+              src="/Bible_Explorer.png"
+              alt="Bible Exegesis Explorer icon"
+              width={40}
+              height={40}
+              className="rounded-md"
+            />
+            <h1 className="text-3xl font-semibold text-stone-800 tracking-tight">
+              Bible Exegesis Explorer
+            </h1>
+          </div>
           <p className="mt-2 text-stone-500">
             Enter a passage reference to expound its meaning through the original Greek and Hebrew
           </p>
