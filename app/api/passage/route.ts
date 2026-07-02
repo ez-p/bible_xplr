@@ -10,7 +10,7 @@ const anthropic = new Anthropic()
 
 async function detectKeywords(passageText: string, reference: string): Promise<Keyword[]> {
   const msg = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-sonnet-5',
     max_tokens: 1024,
     system: 'You are a biblical scholar and theologian specializing in original language word studies.',
     messages: [
@@ -37,7 +37,8 @@ Rules:
     ],
   })
 
-  const raw = msg.content[0].type === 'text' ? msg.content[0].text : ''
+  const textBlock = msg.content.find(block => block.type === 'text')
+  const raw = textBlock?.type === 'text' ? textBlock.text : ''
   const match = raw.match(/\{[\s\S]*\}/)
   if (!match) return []
 

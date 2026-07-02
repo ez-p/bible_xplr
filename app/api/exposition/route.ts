@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     async start(controller) {
       try {
         const claudeStream = anthropic.messages.stream({
-          model: 'claude-sonnet-4-6',
+          model: 'claude-sonnet-5',
           max_tokens: 2048,
           system: `You are a biblical scholar specializing in ${originalLanguage} original language word studies and their theological significance.`,
           messages: [

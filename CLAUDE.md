@@ -62,7 +62,7 @@ Pass the user's input URL-encoded directly as the `q` parameter — do not build
 - **Keyword detection**: structured JSON response, 3–8 theological theme keywords per passage. Shape: `{ keywords: [{ word, theme, originalLanguage }] }`.
 - **Exposition**: streaming, two delimited sections in the response — Summary (2–3 sentences with original word + transliteration) and Full exposition (3–5 paragraphs: etymology, cross-Scripture usage, theological significance).
 - Infer original language from the book: Greek for NT, Hebrew for OT.
-- Use `@anthropic-ai/sdk` directly. Model: `claude-sonnet-4-6` (or latest).
+- Use `@anthropic-ai/sdk` directly. Model: `claude-sonnet-5` (or latest).
 
 ## Environment Variables
 
