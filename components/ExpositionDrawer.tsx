@@ -29,6 +29,16 @@ interface ExpositionDrawerProps {
 
 type Phase = "pre" | "summary" | "full"
 
+interface LiveSnapshot {
+  summary: string
+  full: string
+  phase: Phase
+}
+
+function wordKey(word: string, reference: string): string {
+  return `${reference}::${word.toLowerCase()}`
+}
+
 function parseBuffer(buf: string): { summary: string; full: string; phase: Phase } {
   const SUMMARY = "===SUMMARY==="
   const FULL = "===FULL==="
@@ -80,10 +90,23 @@ export function ExpositionDrawer({
   const [phase, setPhase] = useState<Phase>("pre")
   const [isStreaming, setIsStreaming] = useState(false)
   const [streamError, setStreamError] = useState<string | null>(null)
-  const abortRef = useRef<AbortController | null>(null)
-  // True while the stream is "handed off" to the main window via Read more.
-  // Prevents the cleanup function from aborting the still-running fetch.
-  const readMoreModeRef = useRef(false)
+  // Always mirrors which word is currently selected. A background fetch for a
+  // word the user has since moved away from checks this before touching the
+  // visible UI state — and if the user reopens that same word later while its
+  // fetch is still running, this naturally starts matching it again, so the
+  // fetch resumes driving the UI without needing a second request.
+  const activeWordKeyRef = useRef<string | null>(null)
+  activeWordKeyRef.current = keyword ? wordKey(keyword.word, reference) : null
+  // Latest known partial/complete state per word, so reopening a word whose
+  // fetch is still running in the background can resume instantly instead of
+  // flashing back to a blank loading state.
+  const liveSnapshotsRef = useRef<Map<string, LiveSnapshot>>(new Map())
+  // Word keys with a fetch currently in flight, so reopening the same word
+  // while it's still streaming in the background doesn't start a duplicate.
+  const inFlightRef = useRef<Set<string>>(new Set())
+  // Word keys for which "Read more" was clicked, so their background stream
+  // is still allowed to push live updates to the main-page panel.
+  const readMoreWordsRef = useRef<Set<string>>(new Set())
   // Always holds the latest onExpositionUpdate so the async IIFE never goes stale.
   const onExpositionUpdateRef = useRef(onExpositionUpdate)
   onExpositionUpdateRef.current = onExpositionUpdate
@@ -95,15 +118,11 @@ export function ExpositionDrawer({
   onStreamCompleteRef.current = onStreamComplete
 
   useEffect(() => {
-    // A new real keyword: abort any lingering read-more stream and start fresh.
-    if (keyword) {
-      abortRef.current?.abort()
-      readMoreModeRef.current = false
-    } else {
-      return
-    }
+    if (!keyword) return
 
     setStreamError(null)
+    const myWordKey = wordKey(keyword.word, reference)
+    const isCurrent = () => activeWordKeyRef.current === myWordKey
 
     // Already fetched this exact word for this passage — render it, no refetch.
     const cached = cachedEntryRef.current
@@ -115,8 +134,25 @@ export function ExpositionDrawer({
       return
     }
 
+    // A fetch for this exact word is already running in the background (it
+    // reached "full" phase, the drawer was closed, and the user reopened it
+    // before that fetch finished). Don't start a duplicate — the running
+    // fetch's own loop will resume driving the UI now that isCurrent() is
+    // true again. Just seed the view with whatever it's produced so far.
+    if (inFlightRef.current.has(myWordKey)) {
+      const snapshot = liveSnapshotsRef.current.get(myWordKey)
+      setSummary(snapshot?.summary ?? "")
+      setFullExposition(snapshot?.full ?? "")
+      setPhase(snapshot?.phase ?? "pre")
+      setIsStreaming(true)
+      return
+    }
+
     const controller = new AbortController()
-    abortRef.current = controller
+    // Local to this effect run only — each fetch tracks its own phase, so an
+    // older fetch's cleanup can't be confused by a newer one for a different word.
+    let localPhase: Phase = "pre"
+    inFlightRef.current.add(myWordKey)
 
     setSummary("")
     setFullExposition("")
@@ -141,7 +177,7 @@ export function ExpositionDrawer({
 
         if (!res.ok) {
           const err = await res.json().catch(() => ({}))
-          setStreamError(err.error ?? "Could not load exposition. Please try again.")
+          if (isCurrent()) setStreamError(err.error ?? "Could not load exposition. Please try again.")
           return
         }
 
@@ -154,10 +190,14 @@ export function ExpositionDrawer({
           if (done) break
           buffer += decoder.decode(value, { stream: true })
           parsed = parseBuffer(buffer)
-          setSummary(parsed.summary)
-          setFullExposition(parsed.full)
-          setPhase(parsed.phase)
-          if (readMoreModeRef.current && parsed.full) {
+          localPhase = parsed.phase
+          liveSnapshotsRef.current.set(myWordKey, parsed)
+          if (isCurrent()) {
+            setSummary(parsed.summary)
+            setFullExposition(parsed.full)
+            setPhase(parsed.phase)
+          }
+          if (readMoreWordsRef.current.has(myWordKey) && parsed.full) {
             onExpositionUpdateRef.current(parsed.full)
           }
         }
@@ -166,17 +206,27 @@ export function ExpositionDrawer({
           onStreamCompleteRef.current(keyword, { summary: parsed.summary, full: parsed.full })
         }
       } catch (err) {
-        if ((err as Error).name !== "AbortError") {
+        if ((err as Error).name !== "AbortError" && isCurrent()) {
           setStreamError("Could not load exposition. Please try again.")
         }
       } finally {
-        setIsStreaming(false)
+        if (isCurrent()) setIsStreaming(false)
+        inFlightRef.current.delete(myWordKey)
+        liveSnapshotsRef.current.delete(myWordKey)
+        readMoreWordsRef.current.delete(myWordKey)
       }
     })()
 
     return () => {
-      // Only abort if the stream wasn't handed off to the main window.
-      if (!readMoreModeRef.current) controller.abort()
+      // Let the fetch finish in the background (for caching) once the full
+      // exposition has started arriving — whether closed via Read more or the
+      // X button. Only abort if it's still mid-summary/pre, since that content
+      // isn't complete enough to cache and a refetch will be needed anyway.
+      if (!readMoreWordsRef.current.has(myWordKey) && localPhase !== "full") {
+        controller.abort()
+        inFlightRef.current.delete(myWordKey)
+        liveSnapshotsRef.current.delete(myWordKey)
+      }
     }
   }, [keyword, passageText, reference])
 
@@ -222,7 +272,7 @@ export function ExpositionDrawer({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    readMoreModeRef.current = true
+                    readMoreWordsRef.current.add(wordKey(keyword.word, reference))
                     onReadMore(keyword, fullExposition)
                     onClose()
                   }}
