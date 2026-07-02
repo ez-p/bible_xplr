@@ -11,13 +11,20 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Keyword } from "@/lib/types"
 
+interface ExpositionEntry {
+  summary: string
+  full: string
+}
+
 interface ExpositionDrawerProps {
   keyword: Keyword | null
   passageText: string
   reference: string
+  cachedEntry?: ExpositionEntry
   onClose: () => void
-  onReadMore: (keyword: Keyword) => void
+  onReadMore: (keyword: Keyword, initialText: string) => void
   onExpositionUpdate: (text: string) => void
+  onStreamComplete: (keyword: Keyword, entry: ExpositionEntry) => void
 }
 
 type Phase = "pre" | "summary" | "full"
@@ -62,9 +69,11 @@ export function ExpositionDrawer({
   keyword,
   passageText,
   reference,
+  cachedEntry,
   onClose,
   onReadMore,
   onExpositionUpdate,
+  onStreamComplete,
 }: ExpositionDrawerProps) {
   const [summary, setSummary] = useState("")
   const [fullExposition, setFullExposition] = useState("")
@@ -78,6 +87,12 @@ export function ExpositionDrawer({
   // Always holds the latest onExpositionUpdate so the async IIFE never goes stale.
   const onExpositionUpdateRef = useRef(onExpositionUpdate)
   onExpositionUpdateRef.current = onExpositionUpdate
+  // Read fresh at effect-start time only, so a cache write after this keyword's
+  // own stream finishes doesn't retrigger the effect (it's not in the deps array).
+  const cachedEntryRef = useRef(cachedEntry)
+  cachedEntryRef.current = cachedEntry
+  const onStreamCompleteRef = useRef(onStreamComplete)
+  onStreamCompleteRef.current = onStreamComplete
 
   useEffect(() => {
     // A new real keyword: abort any lingering read-more stream and start fresh.
@@ -88,6 +103,18 @@ export function ExpositionDrawer({
       return
     }
 
+    setStreamError(null)
+
+    // Already fetched this exact word for this passage — render it, no refetch.
+    const cached = cachedEntryRef.current
+    if (cached) {
+      setSummary(cached.summary)
+      setFullExposition(cached.full)
+      setPhase(cached.full ? "full" : "summary")
+      setIsStreaming(false)
+      return
+    }
+
     const controller = new AbortController()
     abortRef.current = controller
 
@@ -95,9 +122,9 @@ export function ExpositionDrawer({
     setFullExposition("")
     setPhase("pre")
     setIsStreaming(true)
-    setStreamError(null)
 
     ;(async () => {
+      let parsed = { summary: "", full: "", phase: "pre" as Phase }
       try {
         const res = await fetch("/api/exposition", {
           method: "POST",
@@ -126,13 +153,17 @@ export function ExpositionDrawer({
           const { done, value } = await reader.read()
           if (done) break
           buffer += decoder.decode(value, { stream: true })
-          const parsed = parseBuffer(buffer)
+          parsed = parseBuffer(buffer)
           setSummary(parsed.summary)
           setFullExposition(parsed.full)
           setPhase(parsed.phase)
           if (readMoreModeRef.current && parsed.full) {
             onExpositionUpdateRef.current(parsed.full)
           }
+        }
+
+        if (parsed.summary) {
+          onStreamCompleteRef.current(keyword, { summary: parsed.summary, full: parsed.full })
         }
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -192,7 +223,7 @@ export function ExpositionDrawer({
                   size="sm"
                   onClick={() => {
                     readMoreModeRef.current = true
-                    onReadMore(keyword)
+                    onReadMore(keyword, fullExposition)
                     onClose()
                   }}
                 >

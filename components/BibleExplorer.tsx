@@ -19,6 +19,15 @@ function md(text: string): React.ReactNode[] {
   })
 }
 
+interface ExpositionEntry {
+  summary: string
+  full: string
+}
+
+function expositionCacheKey(word: string, reference: string): string {
+  return `${reference}::${word.toLowerCase()}`
+}
+
 export function BibleExplorer() {
   const [reference, setReference] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -27,6 +36,7 @@ export function BibleExplorer() {
   const [selectedKeyword, setSelectedKeyword] = useState<Keyword | null>(null)
   const [expositionPanel, setExpositionPanel] = useState<{ keyword: Keyword; text: string } | null>(null)
   const [showHelp, setShowHelp] = useState(false)
+  const [expositionCache, setExpositionCache] = useState<Map<string, ExpositionEntry>>(new Map())
 
   async function handleSubmit() {
     if (!reference.trim()) return
@@ -35,6 +45,7 @@ export function BibleExplorer() {
     setSelectedKeyword(null)
     setResult(null)
     setExpositionPanel(null)
+    setExpositionCache(new Map())
 
     try {
       const res = await fetch("/api/passage", {
@@ -59,12 +70,18 @@ export function BibleExplorer() {
     setSelectedKeyword({ ...kw })
   }
 
-  function handleReadMore(kw: Keyword) {
-    setExpositionPanel({ keyword: kw, text: "" })
+  function handleReadMore(kw: Keyword, initialText: string) {
+    setExpositionPanel({ keyword: kw, text: initialText })
   }
 
   function handleExpositionUpdate(text: string) {
     setExpositionPanel(prev => prev ? { ...prev, text } : null)
+  }
+
+  function handleStreamComplete(kw: Keyword, entry: ExpositionEntry) {
+    if (!result) return
+    const key = expositionCacheKey(kw.word, result.reference)
+    setExpositionCache(prev => new Map(prev).set(key, entry))
   }
 
   return (
@@ -148,9 +165,15 @@ export function BibleExplorer() {
           keyword={selectedKeyword}
           passageText={result.passageText}
           reference={result.reference}
+          cachedEntry={
+            selectedKeyword
+              ? expositionCache.get(expositionCacheKey(selectedKeyword.word, result.reference))
+              : undefined
+          }
           onClose={() => setSelectedKeyword(null)}
           onReadMore={handleReadMore}
           onExpositionUpdate={handleExpositionUpdate}
+          onStreamComplete={handleStreamComplete}
         />
       )}
 

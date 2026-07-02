@@ -27,11 +27,11 @@ export function PassageInput({ value, onChange, onSubmit, onHelp, isLoading, err
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="John 3:16 or Romans 8:28-39"
+          placeholder="e.g. John 3:16 or Romans 8:28-39"
           disabled={isLoading}
           autoComplete="off"
           suppressHydrationWarning
-          className="flex-1 h-11 px-4 rounded-lg border border-input bg-white text-foreground text-base placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 transition-shadow"
+          className="flex-1 h-11 px-4 rounded-lg border border-input bg-white text-foreground text-base placeholder:text-muted-foreground/60 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent disabled:opacity-50 transition-shadow"
         />
         <Button type="submit" disabled={isLoading || !value.trim()} className="gap-2">
           {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
