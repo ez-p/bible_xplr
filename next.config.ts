@@ -14,6 +14,8 @@ const nextConfig: NextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           // Disable browser features this app never uses
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+          // Keep this app out of search engine indexes
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
     ];

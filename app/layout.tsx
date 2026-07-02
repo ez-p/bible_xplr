@@ -16,6 +16,10 @@ const lora = Lora({
 export const metadata: Metadata = {
   title: "Bible Exegesis Explorer",
   description: "Explore Bible passages with original language word studies",
+  robots: {
+    index: false,
+    follow: false,
+  },
 }
 
 export default function RootLayout({
