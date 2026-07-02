@@ -6,6 +6,7 @@ import { PassageInput } from "@/components/PassageInput"
 import { PassageDisplay } from "@/components/PassageDisplay"
 import { ExpositionDrawer } from "@/components/ExpositionDrawer"
 import { HelpDialog } from "@/components/HelpDialog"
+import { HamburgerMenu } from "@/components/HamburgerMenu"
 import type { Keyword, PassageResult } from "@/lib/types"
 
 function md(text: string): React.ReactNode[] {
@@ -69,7 +70,7 @@ export function BibleExplorer() {
   return (
     <>
       <div className="flex flex-col items-center gap-8 py-16 px-4 w-full max-w-3xl mx-auto">
-        <div className="text-center">
+        <div className="w-full relative text-center">
           <div className="flex items-center justify-center gap-3">
             <Image
               src="/Bible_Explorer.png"
@@ -81,6 +82,9 @@ export function BibleExplorer() {
             <h1 className="text-3xl font-semibold text-heading tracking-tight">
               Bible Exegesis Explorer
             </h1>
+          </div>
+          <div className="absolute right-0 top-0">
+            <HamburgerMenu />
           </div>
           <p className="mt-2 text-muted-foreground">
             Enter a passage reference to expound its meaning through the original Greek and Hebrew
